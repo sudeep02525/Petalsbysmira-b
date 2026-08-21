@@ -26,7 +26,8 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://petalsbysmira.in",
   "https://admin.petalsbysmira.in",
-  "https://www.petalsbysmira.in"
+  "https://www.petalsbysmira.in",
+  "https://petalsbysmira-f.vercel.app"
 ].filter(Boolean);
 
 app.use(
