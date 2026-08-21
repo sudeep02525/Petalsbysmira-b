@@ -1,0 +1,48 @@
+import jwt from "jsonwebtoken";
+import Admin from "../models/Admin.js";
+import User from "../models/User.js";
+
+// Protect customer routes
+const protectUser = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization?.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password");
+      if (!req.user) return res.status(401).json({ message: "User not found" });
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Not authorized, invalid token" });
+    }
+  }
+  return res.status(401).json({ message: "Not authorized, no token" });
+};
+
+// Protect admin routes
+const protectAdmin = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization?.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.admin = await Admin.findById(decoded.id).select("-password");
+      if (!req.admin)
+        return res.status(401).json({ message: "Admin not found" });
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Not authorized, invalid token" });
+    }
+  }
+  return res.status(401).json({ message: "Not authorized, no token" });
+};
+
+// Restrict to superadmin only (e.g. for creating other admins)
+const superAdminOnly = (req, res, next) => {
+  if (req.admin?.role !== "superadmin") {
+    return res.status(403).json({ message: "Superadmin access required" });
+  }
+  next();
+};
+
+export { protectUser, protectAdmin, superAdminOnly };
