@@ -21,14 +21,13 @@ connectDB();
 
 // middleware
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
   "http://localhost:3000",
   "http://localhost:3001",
   "https://petalsbysmira.in",
   "https://admin.petalsbysmira.in",
   "https://www.petalsbysmira.in",
   "https://petalsbysmira-f.vercel.app"
-].filter(Boolean);
+];
 
 app.use(
   cors({
@@ -52,14 +51,14 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/payment", paymentRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/shipping", shippingRoutes);
-app.use("/api/campaigns", campaignRoutes);
+app.use("/auth", authRoutes);
+app.use("/products", productRoutes);
+app.use("/categories", categoryRoutes);
+app.use("/orders", orderRoutes);
+app.use("/payment", paymentRoutes);
+app.use("/admin", adminRoutes);
+app.use("/shipping", shippingRoutes);
+app.use("/campaigns", campaignRoutes);
 
 // 404 handler
 app.use((req, res) => {
