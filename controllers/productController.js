@@ -1,6 +1,25 @@
 import Product from "../models/Product.js";
-import Order from "../models/Order.js";
 import cloudinary from "../config/cloudinary.js";
+
+// Public DTO mapper to guarantee no price leakage
+const mapPublicProduct = (product) => {
+  const p = product.toObject ? product.toObject() : product;
+  return {
+    _id: p._id,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    shortSubtitle: p.shortSubtitle || p.shortDescription,
+    images: p.images,
+    category: p.category,
+    collectionId: p.collectionId || p.category,
+    limitedEdition: p.limitedEdition,
+    requestAccessEnabled: p.requestAccessEnabled,
+    displayOrder: p.displayOrder,
+    isFeatured: p.isFeatured,
+    isNewArrival: p.isNewArrival
+  };
+};
 
 // helper: turn "Green Butterfly Bracelet" -> "green-butterfly-bracelet-<random>"
 const slugify = (text) =>
@@ -48,16 +67,9 @@ const getProducts = async (req, res) => {
     if (occasion) filter.occasionTags = occasion;
     if (featured === "true") filter.isFeatured = true;
     if (newArrival === "true") filter.isNewArrival = true;
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
-    }
     if (search) filter.$text = { $search: search };
 
     let sortOption = { createdAt: -1 };
-    if (sort === "price_asc") sortOption = { price: 1 };
-    if (sort === "price_desc") sortOption = { price: -1 };
     if (sort === "popular") sortOption = { numReviews: -1 };
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -68,7 +80,7 @@ const getProducts = async (req, res) => {
     ]);
 
     res.json({
-      products,
+      products: products.map(mapPublicProduct),
       total,
       page: Number(page),
       totalPages: Math.ceil(total / Number(limit)),
@@ -85,7 +97,7 @@ const getProductById = async (req, res) => {
     const query = idOrSlug.match(/^[0-9a-fA-F]{24}$/) ? { _id: idOrSlug } : { slug: idOrSlug };
     const product = await Product.findOne(query).populate("category", "name slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
-    res.json(product);
+    res.json(mapPublicProduct(product));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -144,9 +156,18 @@ const createProduct = async (req, res) => {
       isFeatured,
       isNewArrival,
       isActive,
+      weight,
+      length,
+      width,
+      height,
+      shortSubtitle,
+      limitedEdition,
+      displayOrder,
+      requestAccessEnabled,
+      collectionId,
     } = req.body;
 
-    if (!name || !description || !price || !category || stock === undefined) {
+    if (!name || !description || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -175,6 +196,17 @@ const createProduct = async (req, res) => {
       isFeatured: isFeatured === "true" || isFeatured === true,
       isNewArrival: isNewArrival === "true" || isNewArrival === true,
       isActive: isActive !== undefined ? (isActive === "true" || isActive === true) : true,
+      weight: weight ? Number(weight) : undefined,
+      dimensions: (length || width || height) ? {
+        length: length ? Number(length) : undefined,
+        width: width ? Number(width) : undefined,
+        height: height ? Number(height) : undefined,
+      } : undefined,
+      shortSubtitle,
+      limitedEdition: limitedEdition === "true" || limitedEdition === true,
+      displayOrder: displayOrder ? Number(displayOrder) : 0,
+      requestAccessEnabled: requestAccessEnabled !== undefined ? (requestAccessEnabled === "true" || requestAccessEnabled === true) : true,
+      collectionId: collectionId || category,
     });
 
     res.status(201).json(product);
@@ -202,9 +234,15 @@ const updateProduct = async (req, res) => {
       "category",
       "subCategory",
       "stock",
+      "weight",
       "isFeatured",
       "isNewArrival",
       "isActive",
+      "shortSubtitle",
+      "limitedEdition",
+      "displayOrder",
+      "requestAccessEnabled",
+      "collectionId"
     ];
     updatable.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -216,6 +254,14 @@ const updateProduct = async (req, res) => {
 
     if (req.body.sku !== undefined) {
       product.sku = req.body.sku === "" ? undefined : req.body.sku;
+    }
+
+    if (req.body.length || req.body.width || req.body.height) {
+      product.dimensions = {
+        length: req.body.length ? Number(req.body.length) : product.dimensions?.length,
+        width: req.body.width ? Number(req.body.width) : product.dimensions?.width,
+        height: req.body.height ? Number(req.body.height) : product.dimensions?.height,
+      };
     }
 
     if (req.body.occasionTags !== undefined) {
@@ -262,15 +308,6 @@ const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
-
-    // 1. Check if product exists in any orders
-    const existingOrder = await Order.findOne({ "items.product": product._id });
-    if (existingOrder) {
-      return res.status(400).json({ 
-        message: "This product has existing orders and cannot be permanently deleted. Please deactivate it instead.",
-        hasOrders: true 
-      });
-    }
 
     // 2. If no orders exist, permanently delete Cloudinary images
     if (product.images && product.images.length > 0) {

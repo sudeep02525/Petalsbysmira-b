@@ -5,14 +5,10 @@ import cors from "cors";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
 
-import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import shippingRoutes from "./routes/shippingRoutes.js";
-import campaignRoutes from "./routes/campaignRoutes.js";
+import requestRoutes from "./routes/requestRoutes.js";
 
 const app = express();
 
@@ -51,14 +47,10 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/categories", categoryRoutes);
-app.use("/orders", orderRoutes);
-app.use("/payment", paymentRoutes);
 app.use("/admin", adminRoutes);
-app.use("/shipping", shippingRoutes);
-app.use("/campaigns", campaignRoutes);
+app.use("/requests", requestRoutes);
 
 // 404 handler
 app.use((req, res) => {

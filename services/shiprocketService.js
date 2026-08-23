@@ -50,17 +50,23 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   return data;
 };
 
-export const getShippingRates = async ({ deliveryPincode, weight, cod, pickupPincode }) => {
+export const getShippingRates = async ({ deliveryPincode, weight, cod, pickupPincode, length, width, height }) => {
   // pickupPincode should ideally come from env or default to primary pickup location
   const pickup = pickupPincode || process.env.SHIPROCKET_PICKUP_PINCODE || "400001"; 
   const isCod = cod ? 1 : 0;
   
-  const query = new URLSearchParams({
+  const queryObj = {
     pickup_postcode: pickup,
     delivery_postcode: deliveryPincode,
     weight: weight || 0.5,
     cod: isCod
-  }).toString();
+  };
+
+  if (length) queryObj.length = length;
+  if (width) queryObj.width = width;
+  if (height) queryObj.height = height;
+
+  const query = new URLSearchParams(queryObj).toString();
 
   return fetchWithAuth(`/courier/serviceability/?${query}`, { method: "GET" });
 };
