@@ -153,13 +153,8 @@ const createProduct = async (req, res) => {
       stock,
       sku,
       occasionTags,
-      isFeatured,
       isNewArrival,
       isActive,
-      weight,
-      length,
-      width,
-      height,
       shortSubtitle,
       limitedEdition,
       displayOrder,
@@ -196,12 +191,6 @@ const createProduct = async (req, res) => {
       isFeatured: isFeatured === "true" || isFeatured === true,
       isNewArrival: isNewArrival === "true" || isNewArrival === true,
       isActive: isActive !== undefined ? (isActive === "true" || isActive === true) : true,
-      weight: weight ? Number(weight) : undefined,
-      dimensions: (length || width || height) ? {
-        length: length ? Number(length) : undefined,
-        width: width ? Number(width) : undefined,
-        height: height ? Number(height) : undefined,
-      } : undefined,
       shortSubtitle,
       limitedEdition: limitedEdition === "true" || limitedEdition === true,
       displayOrder: displayOrder ? Number(displayOrder) : 0,
@@ -234,7 +223,6 @@ const updateProduct = async (req, res) => {
       "category",
       "subCategory",
       "stock",
-      "weight",
       "isFeatured",
       "isNewArrival",
       "isActive",
@@ -254,14 +242,6 @@ const updateProduct = async (req, res) => {
 
     if (req.body.sku !== undefined) {
       product.sku = req.body.sku === "" ? undefined : req.body.sku;
-    }
-
-    if (req.body.length || req.body.width || req.body.height) {
-      product.dimensions = {
-        length: req.body.length ? Number(req.body.length) : product.dimensions?.length,
-        width: req.body.width ? Number(req.body.width) : product.dimensions?.width,
-        height: req.body.height ? Number(req.body.height) : product.dimensions?.height,
-      };
     }
 
     if (req.body.occasionTags !== undefined) {

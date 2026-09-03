@@ -20,13 +20,6 @@ const productSchema = new mongoose.Schema(
 
     occasionTags: [{ type: String }], // e.g. ["Rakhi", "Birthday", "Anniversary"]
 
-    weight: { type: Number }, // in kg
-    dimensions: {
-      length: { type: Number }, // in cm
-      width: { type: Number }, // in cm
-      height: { type: Number } // in cm
-    },
-
     isFeatured: { type: Boolean, default: false },
     isNewArrival: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
