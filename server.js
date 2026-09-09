@@ -23,7 +23,8 @@ const allowedOrigins = [
   "https://petalsbysmira.in",
   "https://admin.petalsbysmira.in",
   "https://www.petalsbysmira.in",
-  "https://petalsbysmira-f.vercel.app"
+  "https://petalsbysmira-f.vercel.app",
+  "https://petalsbysmira-admin.vercel.app"
 ];
 
 app.use(
