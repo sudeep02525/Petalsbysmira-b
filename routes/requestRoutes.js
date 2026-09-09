@@ -5,6 +5,7 @@ import {
   getRequestById,
   updateRequest,
   validateToken,
+  generatePrivateAccess,
   resendPrivateAccess,
   revokePrivateAccess,
 } from "../controllers/requestController.js";
@@ -20,6 +21,7 @@ router.post("/", createRequest);
 router.get("/", protectAdmin, getRequests);
 router.get("/:id", protectAdmin, getRequestById);
 router.put("/:id", protectAdmin, updateRequest);
+router.post("/:id/generate-link", protectAdmin, generatePrivateAccess);
 router.post("/:id/resend", protectAdmin, resendPrivateAccess);
 router.post("/:id/revoke", protectAdmin, revokePrivateAccess);
 

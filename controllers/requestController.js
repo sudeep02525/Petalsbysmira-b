@@ -134,23 +134,38 @@ export const updateRequest = async (req, res) => {
     if (status) request.status = status;
     if (internalNotes !== undefined) request.internalNotes = internalNotes;
 
-    if (status === "Approved" || status === "Access Granted") {
-      if (previousStatus !== status && !request.privateAccessToken) {
-        const rawToken = crypto.randomBytes(32).toString("hex");
-        request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-        request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        request.privateAccessRevoked = false;
-        
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-        const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
-        
-        await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
-      }
-    }
-
     await request.save();
 
     res.json(request);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const generatePrivateAccess = async (req, res) => {
+  try {
+    const request = await AccessRequest.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    if (request.privateAccessToken) {
+      return res.status(400).json({ message: "Access link already generated" });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    request.privateAccessRevoked = false;
+    
+    await request.save();
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
+    
+    await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+
+    res.json({ message: "Access link generated and email sent successfully." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
