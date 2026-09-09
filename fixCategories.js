@@ -1,56 +1,36 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env.local" });
+dotenv.config({ path: ".env.local" });
+import mongoose from "mongoose";
+import connectDB from "./config/db.js";
+import Category from "./models/Category.js";
 
 const run = async () => {
-  try {
-    const { default: Category } = await import("./models/Category.js");
-    const { default: Product } = await import("./models/Product.js");
+  await connectDB();
 
-    await mongoose.connect(process.env.MONGO_URI);
+  // Clear existing categories
+  await Category.deleteMany({});
+  console.log("🧹 Cleared old categories");
 
-    // 1. Create categories
-    await Category.deleteMany({});
-    
-    const catsData = [
-      { name: "The Editions", slug: "the-editions", description: "Curated for those who know their worth.", isActive: true, displayOrder: 1 },
-      { name: "Men's Luxury Watches", slug: "mens-luxury-watches", description: "Timeless Icons", isActive: true, displayOrder: 2 },
-      { name: "Luxury Bags", slug: "luxury-bags", description: "A Lifestyle, Not a Trend", isActive: true, displayOrder: 3 }
-    ];
+  // Create new luxury categories
+  const categories = [
+    { name: "High Jewelry", slug: "high-jewelry", displayOrder: 1 },
+    { name: "Fine Necklaces", slug: "fine-necklaces", displayOrder: 2 },
+    { name: "Rings & Bands", slug: "rings-bands", displayOrder: 3 },
+    { name: "Bracelets", slug: "bracelets", displayOrder: 4 },
+    { name: "Earrings", slug: "earrings", displayOrder: 5 },
+    { name: "Bridal & Engagement", slug: "bridal-engagement", displayOrder: 6 },
+  ];
 
-    const createdCats = await Category.insertMany(catsData);
-    console.log("Created categories:", createdCats.map(c => c.name));
-
-    const editionsCat = createdCats.find(c => c.slug === "the-editions");
-    const watchesCat = createdCats.find(c => c.slug === "mens-luxury-watches");
-    const bagsCat = createdCats.find(c => c.slug === "luxury-bags");
-
-    // 2. Update products
-    const products = await Product.find({});
-    console.log(`Found ${products.length} products to update.`);
-
-    for (let p of products) {
-      if (p.name.includes("Cuff") || p.name.includes("Ring") || p.name.includes("Petal") || p.name.includes("Bloom Bag")) {
-        p.category = editionsCat._id;
-      } else if (p.name.includes("Rolex")) {
-        p.category = watchesCat._id;
-      } else if (p.name.includes("Gucci")) {
-        p.category = bagsCat._id;
-      }
-      
-      // Make sure all products are active and featured so they show up!
-      p.isActive = true;
-      p.isFeatured = true;
-      await p.save();
-    }
-
-    console.log("Products successfully linked to new categories!");
-    process.exit(0);
-
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
+  for (const cat of categories) {
+    await Category.create(cat);
+    console.log(`✅ Category created: ${cat.name}`);
   }
+
+  console.log("💎 Luxury categories update complete");
+  mongoose.connection.close();
 };
 
-run();
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

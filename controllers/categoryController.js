@@ -13,6 +13,27 @@ const getCategories = async (req, res) => {
   }
 };
 
+// @route GET /api/admin/categories
+const getAdminCategories = async (req, res) => {
+  try {
+    const categories = await Category.find({}).sort({ createdAt: -1 });
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @route GET /api/admin/categories/:id
+const getCategoryById = async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    res.json(category);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @route POST /api/admin/categories
 const createCategory = async (req, res) => {
   try {
@@ -63,4 +84,4 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-export { getCategories, createCategory, updateCategory, deleteCategory };
+export { getCategories, getAdminCategories, getCategoryById, createCategory, updateCategory, deleteCategory };

@@ -73,3 +73,36 @@ export const sendUserPasswordResetEmail = async (toEmail, resetUrl) => {
     throw error;
   }
 };
+
+export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) => {
+  try {
+    if (!resend) {
+      console.warn("⚠️ RESEND_API_KEY is not configured. Falling back to console log for Private Access link.");
+      console.log(`\n=================================\nMock Email to: ${toEmail}\nSubject: Your Private Access - Petals by Smira\nLink: ${accessUrl}\n=================================\n`);
+      return { id: "mock_email_id" };
+    }
+
+    const data = await resend.emails.send({
+      from: "Petals by Smira <onboarding@resend.dev>",
+      to: toEmail,
+      subject: "Your Private Access - Petals by Smira",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #333; text-align: center;">Private Access Granted</h2>
+          <p style="color: #555; font-size: 16px;">Hello ${customerName},</p>
+          <p style="color: #555; font-size: 16px;">Your request for Private Access has been approved. You can now view the exclusive pricing for your requested piece and our entire private collection.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${accessUrl}" style="display: inline-block; background-color: #000; padding: 15px 30px; font-size: 16px; font-weight: bold; color: #d4af37; text-decoration: none; border-radius: 8px;">
+              View Private Prices
+            </a>
+          </div>
+          <p style="color: #555; font-size: 14px;">This link is valid for exactly <strong>24 hours</strong>. Do not share it with anyone.</p>
+        </div>
+      `,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error sending Private Access email:", error);
+    throw error;
+  }
+};

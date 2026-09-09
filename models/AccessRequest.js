@@ -26,6 +26,9 @@ const accessRequestSchema = new mongoose.Schema(
       default: "New",
     },
     internalNotes: { type: String, default: "" },
+    privateAccessToken: { type: String, sparse: true }, // Hashed token
+    privateAccessExpiresAt: { type: Date },
+    privateAccessRevoked: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

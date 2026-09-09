@@ -4,6 +4,9 @@ import {
   getRequests,
   getRequestById,
   updateRequest,
+  validateToken,
+  resendPrivateAccess,
+  revokePrivateAccess,
 } from "../controllers/requestController.js";
 import { protectAdmin } from "../middleware/auth.js";
 // assuming rate limit could be added here later if needed
@@ -17,5 +20,10 @@ router.post("/", createRequest);
 router.get("/", protectAdmin, getRequests);
 router.get("/:id", protectAdmin, getRequestById);
 router.put("/:id", protectAdmin, updateRequest);
+router.post("/:id/resend", protectAdmin, resendPrivateAccess);
+router.post("/:id/revoke", protectAdmin, revokePrivateAccess);
+
+// Public route for token validation
+router.get("/private-access/validate/:token", validateToken);
 
 export default router;

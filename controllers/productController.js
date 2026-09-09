@@ -2,14 +2,27 @@ import Product from "../models/Product.js";
 import cloudinary from "../config/cloudinary.js";
 
 // Public DTO mapper to guarantee no price leakage
-const mapPublicProduct = (product) => {
+const mapPublicProduct = (product, hasPrivateAccess) => {
   const p = product.toObject ? product.toObject() : product;
+  
+  let currentPrice = p.price;
+  let currentDiscountPrice = p.discountPrice;
+
+  // If product requires access and user doesn't have it, hide the prices
+  if (p.requestAccessEnabled && !hasPrivateAccess) {
+    currentPrice = null;
+    currentDiscountPrice = null;
+  }
+
   return {
     _id: p._id,
     name: p.name,
     slug: p.slug,
     description: p.description,
+    shortDescription: p.shortDescription,
     shortSubtitle: p.shortSubtitle || p.shortDescription,
+    price: currentPrice,
+    discountPrice: currentDiscountPrice,
     images: p.images,
     category: p.category,
     collectionId: p.collectionId || p.category,
@@ -17,7 +30,8 @@ const mapPublicProduct = (product) => {
     requestAccessEnabled: p.requestAccessEnabled,
     displayOrder: p.displayOrder,
     isFeatured: p.isFeatured,
-    isNewArrival: p.isNewArrival
+    isNewArrival: p.isNewArrival,
+    stock: p.stock
   };
 };
 
@@ -64,6 +78,7 @@ const getProducts = async (req, res) => {
 
     const filter = { isActive: true };
     if (category) filter.category = category;
+    if (req.query.collectionId) filter.collectionId = req.query.collectionId;
     if (occasion) filter.occasionTags = occasion;
     if (featured === "true") filter.isFeatured = true;
     if (newArrival === "true") filter.isNewArrival = true;
@@ -80,7 +95,7 @@ const getProducts = async (req, res) => {
     ]);
 
     res.json({
-      products: products.map(mapPublicProduct),
+      products: products.map(p => mapPublicProduct(p, req.hasPrivateAccess)),
       total,
       page: Number(page),
       totalPages: Math.ceil(total / Number(limit)),
@@ -97,7 +112,7 @@ const getProductById = async (req, res) => {
     const query = idOrSlug.match(/^[0-9a-fA-F]{24}$/) ? { _id: idOrSlug } : { slug: idOrSlug };
     const product = await Product.findOne(query).populate("category", "name slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
-    res.json(mapPublicProduct(product));
+    res.json(mapPublicProduct(product, req.hasPrivateAccess));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -138,6 +153,17 @@ const getAdminProducts = async (req, res) => {
   }
 };
 
+// @route GET /api/admin/products/:id
+const getAdminProductById = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).populate("category", "name slug");
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @route POST /api/admin/products
 const createProduct = async (req, res) => {
   try {
@@ -148,6 +174,7 @@ const createProduct = async (req, res) => {
       shortDescription,
       price,
       discountPrice,
+      privatePrice,
       category,
       subCategory,
       stock,
@@ -178,6 +205,7 @@ const createProduct = async (req, res) => {
       shortDescription,
       price,
       discountPrice: discountPrice || null,
+      privatePrice: privatePrice || null,
       category,
       subCategory,
       sku: sku || undefined,
@@ -220,6 +248,7 @@ const updateProduct = async (req, res) => {
       "shortDescription",
       "price",
       "discountPrice",
+      "privatePrice",
       "category",
       "subCategory",
       "stock",
@@ -236,6 +265,9 @@ const updateProduct = async (req, res) => {
       if (req.body[field] !== undefined) {
         if (req.body[field] === "true") product[field] = true;
         else if (req.body[field] === "false") product[field] = false;
+        else if (field === "collectionId" && req.body[field] === "") {
+          product.collectionId = req.body.category || product.category;
+        }
         else product[field] = req.body[field];
       }
     });
@@ -307,4 +339,4 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-export { getProducts, getProductById, getAdminProducts, createProduct, updateProduct, deleteProduct };
+export { getProducts, getProductById, getAdminProducts, getAdminProductById, createProduct, updateProduct, deleteProduct };

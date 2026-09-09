@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import AccessRequest from "../models/AccessRequest.js";
 import Product from "../models/Product.js";
+import { sendPrivateAccessEmail } from "../utils/emailService.js";
 
 // @route POST /api/requests
 // @desc Create a new access request (Public)
@@ -128,12 +130,96 @@ export const updateRequest = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
+    const previousStatus = request.status;
     if (status) request.status = status;
     if (internalNotes !== undefined) request.internalNotes = internalNotes;
+
+    if (status === "Approved" || status === "Access Granted") {
+      if (previousStatus !== status && !request.privateAccessToken) {
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+        request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        request.privateAccessRevoked = false;
+        
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
+        
+        await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+      }
+    }
 
     await request.save();
 
     res.json(request);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const resendPrivateAccess = async (req, res) => {
+  try {
+    const request = await AccessRequest.findById(req.params.id);
+    if (!request || !request.privateAccessToken) {
+      return res.status(404).json({ message: "Valid request not found" });
+    }
+    
+    // Generate a new token but KEEP the expiry time
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    request.privateAccessRevoked = false;
+    
+    await request.save();
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
+    
+    await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+
+    res.json({ message: "Email resent successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const revokePrivateAccess = async (req, res) => {
+  try {
+    const request = await AccessRequest.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+    
+    request.privateAccessRevoked = true;
+    await request.save();
+
+    res.json({ message: "Access revoked successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const validateToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    if (!token) return res.status(400).json({ message: "No token provided" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const request = await AccessRequest.findOne({ privateAccessToken: hashedToken });
+
+    if (!request) return res.status(404).json({ message: "Invalid or expired link." });
+    if (request.privateAccessRevoked) return res.status(401).json({ message: "Access has been revoked." });
+    if (request.privateAccessExpiresAt && new Date() > request.privateAccessExpiresAt) {
+      return res.status(401).json({ message: "Link has expired." });
+    }
+
+    // Set HTTP-only cookie
+    res.cookie("privateAccessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    res.json({ valid: true, message: "Access granted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
