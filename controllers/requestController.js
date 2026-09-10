@@ -165,7 +165,7 @@ export const generatePrivateAccess = async (req, res) => {
     
     await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
 
-    res.json({ message: "Access link generated and email sent successfully." });
+    res.json({ message: "Access link generated and email sent successfully.", accessUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -190,7 +190,7 @@ export const resendPrivateAccess = async (req, res) => {
     
     await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
 
-    res.json({ message: "Email resent successfully." });
+    res.json({ message: "Email resent successfully.", accessUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
