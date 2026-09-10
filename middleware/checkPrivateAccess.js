@@ -3,7 +3,7 @@ import AccessRequest from "../models/AccessRequest.js";
 
 export const checkPrivateAccess = async (req, res, next) => {
   try {
-    const rawToken = req.cookies?.privateAccessToken;
+    const rawToken = req.cookies?.privateAccessToken || req.headers["x-private-access-token"];
 
     if (!rawToken) {
       req.hasPrivateAccess = false;

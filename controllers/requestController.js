@@ -234,7 +234,7 @@ export const validateToken = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    res.json({ valid: true, message: "Access granted" });
+    res.json({ valid: true, message: "Access granted", privateAccessToken: token });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
