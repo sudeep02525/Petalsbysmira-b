@@ -38,7 +38,6 @@ export const createRequest = async (req, res) => {
       });
     }
 
-    // Create the request
     const newRequest = await AccessRequest.create({
       fullName,
       email,
@@ -48,6 +47,12 @@ export const createRequest = async (req, res) => {
       collectionId: collectionId || product.collectionId || product.category,
       message,
     });
+
+    // Emit event to admin clients
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("newAccessRequest", { requestId: newRequest._id });
+    }
 
     res.status(201).json({
       message: "Request received successfully.",
