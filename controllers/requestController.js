@@ -162,6 +162,7 @@ export const generatePrivateAccess = async (req, res) => {
     request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
     request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     request.privateAccessRevoked = false;
+    request.status = "Access Granted";
     
     await request.save();
 
@@ -187,6 +188,7 @@ export const resendPrivateAccess = async (req, res) => {
     const rawToken = crypto.randomBytes(32).toString("hex");
     request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
     request.privateAccessRevoked = false;
+    request.status = "Access Granted";
     
     await request.save();
 

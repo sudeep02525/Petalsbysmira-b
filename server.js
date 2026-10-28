@@ -29,10 +29,20 @@ const allowedOrigins = [
   "https://petalsbysmira-admin.vercel.app"
 ];
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return true;
+  if (process.env.ADMIN_URL && origin === process.env.ADMIN_URL) return true;
+  if (/^https:\/\/petalsbysmira.*\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/.*\.onrender\.com$/.test(origin)) return true;
+  return false;
+};
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -46,7 +56,13 @@ app.use(
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }
 });
@@ -72,6 +88,7 @@ app.get("/", (req, res) => {
 // routes
 app.use("/products", productRoutes);
 app.use("/categories", categoryRoutes);
+app.use("/collections", categoryRoutes);
 app.use("/admin", adminRoutes);
 app.use("/requests", requestRoutes);
 

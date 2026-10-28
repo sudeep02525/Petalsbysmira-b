@@ -8,8 +8,13 @@ const run = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB connected");
 
-    const email = "petalsbysmira@gmail.com";
-    const password = "Sudeep@00";
+    const email = process.env.ADMIN_EMAIL || "petalsbysmira@gmail.com";
+    const password = process.env.ADMIN_PASSWORD;
+
+    if (!password) {
+      console.error("❌ Error: process.env.ADMIN_PASSWORD must be provided.");
+      process.exit(1);
+    }
 
     let admin = await Admin.findOne({ email });
     if (!admin) {

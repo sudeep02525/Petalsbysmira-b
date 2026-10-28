@@ -5,6 +5,7 @@ dotenv.config({ path: ".env.local" });
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey && resendApiKey !== "YOUR_RESEND_API_KEY_HERE" ? new Resend(resendApiKey) : null;
+const EMAIL_FROM = process.env.EMAIL_FROM || "Petals by Smira <onboarding@resend.dev>";
 
 export const sendOtpEmail = async (toEmail, otp) => {
   try {
@@ -15,7 +16,7 @@ export const sendOtpEmail = async (toEmail, otp) => {
     }
 
     const data = await resend.emails.send({
-      from: "Petals by Smira <onboarding@resend.dev>", // Replace with a verified domain later
+      from: EMAIL_FROM,
       to: toEmail,
       subject: "Admin Password Reset OTP - Petals by Smira",
       html: `
@@ -49,7 +50,7 @@ export const sendUserPasswordResetEmail = async (toEmail, resetUrl) => {
     }
 
     const data = await resend.emails.send({
-      from: "Petals by Smira <onboarding@resend.dev>", // Replace with a verified domain later
+      from: EMAIL_FROM,
       to: toEmail,
       subject: "Reset Your Password - Petals by Smira",
       html: `
@@ -83,7 +84,7 @@ export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) =
     }
 
     const data = await resend.emails.send({
-      from: "Petals by Smira <onboarding@resend.dev>",
+      from: EMAIL_FROM,
       to: toEmail,
       subject: "Your Private Access - Petals by Smira",
       html: `

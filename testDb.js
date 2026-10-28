@@ -11,7 +11,7 @@ const testDb = async () => {
     const admin = await Admin.findOne({ email });
     console.log("Admin found:", !!admin);
     if (admin) {
-      const isMatch = await admin.matchPassword("Sudeep@00");
+      const isMatch = await admin.matchPassword(process.env.ADMIN_PASSWORD || "");
       console.log("Password matches:", isMatch);
     }
     process.exit(0);

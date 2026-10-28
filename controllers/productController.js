@@ -110,7 +110,7 @@ const getProductById = async (req, res) => {
   try {
     const { idOrSlug } = req.params;
     const query = idOrSlug.match(/^[0-9a-fA-F]{24}$/) ? { _id: idOrSlug } : { slug: idOrSlug };
-    const product = await Product.findOne(query).populate("category", "name slug");
+    const product = await Product.findOne({ ...query, isActive: true }).populate("category", "name slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(mapPublicProduct(product, req.hasPrivateAccess));
   } catch (error) {
@@ -180,6 +180,7 @@ const createProduct = async (req, res) => {
       stock,
       sku,
       occasionTags,
+      isFeatured,
       isNewArrival,
       isActive,
       shortSubtitle,

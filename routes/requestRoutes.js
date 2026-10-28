@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   createRequest,
   getRequests,
@@ -10,12 +11,22 @@ import {
   revokePrivateAccess,
 } from "../controllers/requestController.js";
 import { protectAdmin } from "../middleware/auth.js";
-// assuming rate limit could be added here later if needed
 
 const router = express.Router();
 
+// Rate limiter for public access requests (5 requests per 10 minutes per IP)
+const requestSubmissionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many requests submitted. Please try again after 10 minutes.",
+  },
+});
+
 // Public route for customers
-router.post("/", createRequest);
+router.post("/", requestSubmissionLimiter, createRequest);
 
 // Protected admin routes
 router.get("/", protectAdmin, getRequests);
