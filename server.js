@@ -18,6 +18,16 @@ import jwt from "jsonwebtoken";
 const app = express();
 app.set("trust proxy", 1);
 
+let helmet;
+try {
+  helmet = (await import("helmet")).default;
+} catch {
+  // loaded once npm i helmet is run
+}
+if (helmet) {
+  app.use(helmet({ crossOriginResourcePolicy: false }));
+}
+
 // connect DB
 connectDB();
 
@@ -37,8 +47,6 @@ const isOriginAllowed = (origin) => {
   if (allowedOrigins.includes(origin)) return true;
   if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return true;
   if (process.env.ADMIN_URL && origin === process.env.ADMIN_URL) return true;
-  if (/^https:\/\/petalsbysmira.*\.vercel\.app$/.test(origin)) return true;
-  if (/^https:\/\/.*\.onrender\.com$/.test(origin)) return true;
   return false;
 };
 
