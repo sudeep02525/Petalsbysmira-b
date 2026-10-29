@@ -1,109 +1,92 @@
 import { Resend } from "resend";
-import dotenv from "dotenv";
-
-dotenv.config({ path: ".env.local" });
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey && resendApiKey !== "YOUR_RESEND_API_KEY_HERE" ? new Resend(resendApiKey) : null;
 const EMAIL_FROM = process.env.EMAIL_FROM || "Petals by Smira <onboarding@resend.dev>";
 
-export const sendOtpEmail = async (toEmail, otp) => {
-  try {
-    if (!resend) {
-      console.warn("⚠️ RESEND_API_KEY is not configured. Falling back to console log for OTP.");
-      console.log(`\n=================================\nMock Email to: ${toEmail}\nSubject: Admin Password Reset OTP\nOTP: ${otp}\n=================================\n`);
-      return { id: "mock_email_id" };
-    }
+const esc = (s = "") =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-    const data = await resend.emails.send({
-      from: EMAIL_FROM,
-      to: toEmail,
-      subject: "Admin Password Reset OTP - Petals by Smira",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
-          <p style="color: #555; font-size: 16px;">Hello Admin,</p>
-          <p style="color: #555; font-size: 16px;">You recently requested to reset your password for the Petals by Smira Admin Panel.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <span style="display: inline-block; background-color: #f4f4f4; padding: 15px 30px; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #000; border-radius: 8px;">
-              ${otp}
-            </span>
-          </div>
-          <p style="color: #555; font-size: 14px;">This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.</p>
-          <p style="color: #999; font-size: 12px; margin-top: 40px; text-align: center;">If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
-    });
-    return data;
-  } catch (error) {
-    console.error("Error sending OTP email:", error);
-    throw error;
-  }
+const shell = ({ preheader = "", heading, body, cta, note }) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Petals by Smira</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f1ec;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ec;padding:32px 12px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;">
+<tr><td style="background:#0a0a0a;padding:28px 32px;text-align:center;">
+<div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:4px;color:#d4af37;">PETALS BY SMIRA</div>
+<div style="font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#8a7d63;margin-top:6px;">PRIVATE LUXURY CONCIERGE</div>
+</td></tr>
+<tr><td style="padding:36px 32px 8px;">
+<h1 style="margin:0 0 16px;font-family:Georgia,serif;font-size:24px;font-weight:normal;color:#111;">${heading}</h1>
+<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#444;">${body}</div>
+</td></tr>
+${cta ? `<tr><td align="center" style="padding:28px 32px;">
+<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td style="background:#0a0a0a;border-radius:4px;">
+<a href="${cta.url}" style="display:inline-block;padding:14px 32px;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#d4af37;text-decoration:none;letter-spacing:1px;">${cta.label}</a>
+</td></tr></table>
+<div style="font-family:Arial,sans-serif;font-size:11px;color:#888;margin-top:14px;word-break:break-all;">${cta.url}</div>
+</td></tr>` : ""}
+${note ? `<tr><td style="padding:0 32px 28px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#777;">${note}</td></tr>` : ""}
+<tr><td style="padding:20px 32px;border-top:1px solid #eee;font-family:Arial,sans-serif;font-size:11px;color:#999;text-align:center;line-height:1.6;">
+Petals by Smira · <a href="mailto:concierge@petalsbysmira.in" style="color:#b08d3f;text-decoration:none;">concierge@petalsbysmira.in</a><br>
+This is an automated message, please do not reply.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+const logMock = (label, to, extra) => {
+  console.warn(`[email] RESEND_API_KEY missing — ${label} not sent`);
+  console.log(`Mock ${label} to ${to}: ${extra}`);
+  return { id: "mock_email_id" };
 };
 
-export const sendUserPasswordResetEmail = async (toEmail, resetUrl) => {
-  try {
-    if (!resend) {
-      console.warn("⚠️ RESEND_API_KEY is not configured. Falling back to console log for user reset link.");
-      console.log(`\n=================================\nMock Email to: ${toEmail}\nSubject: Reset Your Password - Petals by Smira\nReset Link: ${resetUrl}\n=================================\n`);
-      return { id: "mock_email_id" };
-    }
-
-    const data = await resend.emails.send({
-      from: EMAIL_FROM,
-      to: toEmail,
-      subject: "Reset Your Password - Petals by Smira",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
-          <p style="color: #555; font-size: 16px;">Hello,</p>
-          <p style="color: #555; font-size: 16px;">We received a request to reset your password for your Petals by Smira account.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}" style="display: inline-block; background-color: #000; padding: 15px 30px; font-size: 16px; font-weight: bold; color: #d4af37; text-decoration: none; border-radius: 8px;">
-              Reset Password
-            </a>
-          </div>
-          <p style="color: #555; font-size: 14px;">This link is valid for <strong>15 minutes</strong>.</p>
-          <p style="color: #999; font-size: 12px; margin-top: 40px; text-align: center;">If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
-    });
-    return data;
-  } catch (error) {
-    console.error("Error sending user reset email:", error);
-    throw error;
-  }
+export const sendOtpEmail = async (toEmail, otp) => {
+  if (!resend) return logMock("OTP email", toEmail, otp);
+  return resend.emails.send({
+    from: EMAIL_FROM,
+    to: toEmail,
+    subject: "Your Petals by Smira admin OTP",
+    html: shell({
+      preheader: `Your one-time code is ${otp}`,
+      heading: "Password Reset Code",
+      body: `<p style="margin:0 0 12px;">Hello Admin,</p>
+             <p style="margin:0 0 18px;">Use this one-time code to reset your Petals by Smira admin password.</p>
+             <div style="text-align:center;margin:8px 0 18px;">
+               <span style="display:inline-block;background:#f4f1ec;border:1px solid #e3dccf;padding:14px 28px;font-size:26px;font-weight:bold;letter-spacing:8px;color:#111;border-radius:6px;">${esc(otp)}</span>
+             </div>`,
+      note: "This code is valid for <strong>10 minutes</strong>. Do not share it with anyone. If you didn't request it, ignore this email.",
+    }),
+    text: `Hello Admin,\n\nYour password reset code is ${otp}. It is valid for 10 minutes.\n\n— Petals by Smira`,
+  });
 };
 
 export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) => {
-  try {
-    if (!resend) {
-      console.warn("⚠️ RESEND_API_KEY is not configured. Falling back to console log for Private Access link.");
-      console.log(`\n=================================\nMock Email to: ${toEmail}\nSubject: Your Private Access - Petals by Smira\nLink: ${accessUrl}\n=================================\n`);
-      return { id: "mock_email_id" };
-    }
-
-    const data = await resend.emails.send({
-      from: EMAIL_FROM,
-      to: toEmail,
-      subject: "Your Private Access - Petals by Smira",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #333; text-align: center;">Private Access Granted</h2>
-          <p style="color: #555; font-size: 16px;">Hello ${customerName},</p>
-          <p style="color: #555; font-size: 16px;">Your request for Private Access has been approved. You can now view the exclusive pricing for your requested piece and our entire private collection.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${accessUrl}" style="display: inline-block; background-color: #000; padding: 15px 30px; font-size: 16px; font-weight: bold; color: #d4af37; text-decoration: none; border-radius: 8px;">
-              View Private Prices
-            </a>
-          </div>
-          <p style="color: #555; font-size: 14px;">This link is valid for exactly <strong>24 hours</strong>. Do not share it with anyone.</p>
-        </div>
-      `,
-    });
-    return data;
-  } catch (error) {
-    console.error("Error sending Private Access email:", error);
-    throw error;
-  }
+  if (!resend) return logMock("private access email", toEmail, accessUrl);
+  return resend.emails.send({
+    from: EMAIL_FROM,
+    to: toEmail,
+    subject: "Your Private Access — Petals by Smira",
+    html: shell({
+      preheader: "Your private access is now active for 24 hours.",
+      heading: "Private Access Granted",
+      body: `<p style="margin:0 0 12px;">Hello ${esc(customerName)},</p>
+             <p style="margin:0;">Your request has been approved. You can now view exclusive pricing across our private collection.</p>`,
+      cta: { url: accessUrl, label: "VIEW PRIVATE PRICES" },
+      note: "This link is valid for exactly <strong>24 hours</strong> and is intended for you alone. Please do not forward it.",
+    }),
+    text: `Hello ${customerName},\n\nYour private access is approved and valid for 24 hours.\n\n${accessUrl}\n\n— Petals by Smira`,
+  });
 };

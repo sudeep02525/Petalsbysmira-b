@@ -283,28 +283,33 @@ const updateProduct = async (req, res) => {
         : req.body.occasionTags.split(",").map((t) => t.trim()).filter(Boolean);
     }
 
-    // Handle existing images to keep
-    let existingImages = req.body.existingImages || [];
-    if (!Array.isArray(existingImages)) {
-      existingImages = [existingImages];
-    }
-    
-    // Find deleted images and remove from Cloudinary
-    const deletedImages = product.images.filter(img => !existingImages.includes(img));
-    for (const imgUrl of deletedImages) {
-      const publicId = getCloudinaryPublicId(imgUrl);
-      if (publicId) {
-        await cloudinary.uploader.destroy(publicId).catch(console.error);
-      }
-    }
+    // Handle existing images to keep safely (only touch images if multipart or explicitly provided)
+    const isMultipart = req.is && req.is("multipart/form-data");
+    const imagesProvided = Boolean(isMultipart || req.body.existingImages !== undefined || req.files?.length);
 
-    let finalImages = [...existingImages];
-    // add new uploaded images to existing ones
-    if (req.files?.length) {
-      finalImages = [...finalImages, ...req.files.map((f) => f.path)];
+    if (imagesProvided) {
+      let existingImages = req.body.existingImages ?? [];
+      if (!Array.isArray(existingImages)) {
+        existingImages = [existingImages];
+      }
+      
+      // Find deleted images and remove from Cloudinary
+      const deletedImages = product.images.filter((img) => !existingImages.includes(img));
+      for (const imgUrl of deletedImages) {
+        const publicId = getCloudinaryPublicId(imgUrl);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId).catch(console.error);
+        }
+      }
+
+      let finalImages = [...existingImages];
+      // add new uploaded images to existing ones
+      if (req.files?.length) {
+        finalImages = [...finalImages, ...req.files.map((f) => f.path)];
+      }
+      
+      product.images = finalImages;
     }
-    
-    product.images = finalImages;
 
     await product.save();
     res.json(product);
@@ -312,6 +317,22 @@ const updateProduct = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ message: "Duplicate SKU or Slug" });
     }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @route PATCH /api/admin/products/:id/status
+const toggleProductStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { isActive: Boolean(isActive) },
+      { new: true }
+    );
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -340,4 +361,4 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-export { getProducts, getProductById, getAdminProducts, getAdminProductById, createProduct, updateProduct, deleteProduct };
+export { getProducts, getProductById, getAdminProducts, getAdminProductById, createProduct, updateProduct, toggleProductStatus, deleteProduct };

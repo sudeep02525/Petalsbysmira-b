@@ -9,6 +9,7 @@ const adminSchema = new mongoose.Schema(
     role: { type: String, enum: ["superadmin", "staff"], default: "staff" },
     resetOtp: { type: String },
     resetOtpExpiry: { type: Date },
+    resetAttempts: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

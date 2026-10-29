@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 
 import { loginAdmin, forgotPasswordAdmin, resetPasswordAdmin, getAdminProfile, updateAdminProfile, updateAdminPassword } from "../controllers/authController.js";
-import { getAdminProducts, getAdminProductById, createProduct, updateProduct, deleteProduct } from "../controllers/productController.js";
+import { getAdminProducts, getAdminProductById, createProduct, updateProduct, toggleProductStatus, deleteProduct } from "../controllers/productController.js";
 import { getAdminCategories, getCategoryById, createCategory, updateCategory, deleteCategory } from "../controllers/categoryController.js";
 import { 
   getDashboardStats
@@ -20,10 +20,18 @@ const loginLimiter = rateLimit({
   message: { message: "Too many login attempts. Try again after 15 minutes." },
 });
 
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts. Try again after 15 minutes." },
+});
+
 // auth
 router.post("/login", loginLimiter, loginAdmin);
-router.post("/forgot-password", forgotPasswordAdmin);
-router.post("/reset-password", resetPasswordAdmin);
+router.post("/forgot-password", otpLimiter, forgotPasswordAdmin);
+router.post("/reset-password", otpLimiter, resetPasswordAdmin);
 router.get("/profile", protectAdmin, getAdminProfile);
 router.put("/profile", protectAdmin, updateAdminProfile);
 router.put("/profile/password", protectAdmin, updateAdminPassword);
@@ -33,6 +41,7 @@ router.get("/products", protectAdmin, getAdminProducts);
 router.get("/products/:id", protectAdmin, getAdminProductById);
 router.post("/products", protectAdmin, upload.array("images", 6), createProduct);
 router.put("/products/:id", protectAdmin, upload.array("images", 6), updateProduct);
+router.patch("/products/:id/status", protectAdmin, toggleProductStatus);
 router.delete("/products/:id", protectAdmin, deleteProduct);
 
 // categories (protected)

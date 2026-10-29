@@ -178,9 +178,21 @@ export const generatePrivateAccess = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
-    await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+    let emailSent = true;
+    try {
+      await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+    } catch (e) {
+      emailSent = false;
+      console.error("Private access email failed:", e.message);
+    }
 
-    res.json({ message: "Access link generated and email sent successfully.", accessUrl });
+    res.json({
+      message: emailSent
+        ? "Access link generated and email sent successfully."
+        : "Link generated, but email could not be delivered. Please copy the link below and share it manually.",
+      accessUrl,
+      emailSent,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -205,9 +217,21 @@ export const resendPrivateAccess = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
-    await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+    let emailSent = true;
+    try {
+      await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
+    } catch (e) {
+      emailSent = false;
+      console.error("Private access email failed:", e.message);
+    }
 
-    res.json({ message: "Email resent successfully.", accessUrl });
+    res.json({
+      message: emailSent
+        ? "Access link email resent successfully."
+        : "Link refreshed, but email could not be delivered. Please copy the link below and share it manually.",
+      accessUrl,
+      emailSent,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -39,6 +39,7 @@ const forgotPasswordAdmin = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
     admin.resetOtp = otp;
     admin.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+    admin.resetAttempts = 0;
 
     await admin.save();
     await sendOtpEmail(admin.email, otp);
@@ -58,8 +59,18 @@ const resetPasswordAdmin = async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin account not found." });
     }
+
+    if (admin.resetAttempts >= 5) {
+      admin.resetOtp = undefined;
+      admin.resetOtpExpiry = undefined;
+      admin.resetAttempts = 0;
+      await admin.save();
+      return res.status(429).json({ message: "Too many invalid attempts. Please request a new OTP." });
+    }
     
     if (!admin.resetOtp || admin.resetOtp !== otp || admin.resetOtpExpiry < new Date()) {
+      admin.resetAttempts = (admin.resetAttempts || 0) + 1;
+      await admin.save();
       return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
@@ -70,6 +81,7 @@ const resetPasswordAdmin = async (req, res) => {
     admin.password = newPassword; // Pre-save hook will hash it
     admin.resetOtp = undefined;
     admin.resetOtpExpiry = undefined;
+    admin.resetAttempts = 0;
 
     await admin.save();
 
@@ -102,7 +114,7 @@ const updateAdminProfile = async (req, res) => {
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
     admin.name = req.body.name || admin.name;
-    admin.email = req.body.email || admin.email;
+    // admin.email is immutable from profile to protect integrity
     
     const updatedAdmin = await admin.save();
     res.json({

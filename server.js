@@ -13,6 +13,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
 import corporateRoutes from "./routes/corporateRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 import jwt from "jsonwebtoken";
 
 const app = express();
@@ -125,15 +126,7 @@ app.use((req, res) => {
 });
 
 // global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack || err);
-  const status = err.status || err.statusCode || 500;
-  const message =
-    process.env.NODE_ENV === "production" && status === 500
-      ? "Internal server error"
-      : err.message || "Server error";
-  res.status(status).json({ message });
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
