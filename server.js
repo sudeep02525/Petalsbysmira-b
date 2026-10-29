@@ -91,9 +91,13 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("Client connected via Socket.io:", socket.id);
+  if (process.env.NODE_ENV !== "production") {
+    console.log("Client connected via Socket.io:", socket.id);
+  }
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Client disconnected:", socket.id);
+    }
   });
 });
 
@@ -122,10 +126,13 @@ app.use((req, res) => {
 
 // global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res
-    .status(err.status || 500)
-    .json({ message: err.message || "Server error" });
+  console.error(err.stack || err);
+  const status = err.status || err.statusCode || 500;
+  const message =
+    process.env.NODE_ENV === "production" && status === 500
+      ? "Internal server error"
+      : err.message || "Server error";
+  res.status(status).json({ message });
 });
 
 const PORT = process.env.PORT || 5000;

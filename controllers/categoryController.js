@@ -1,4 +1,5 @@
 import Category from "../models/Category.js";
+import Product from "../models/Product.js";
 
 const slugify = (text) =>
   text.toString().toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
@@ -84,9 +85,18 @@ const updateCategory = async (req, res) => {
 // @route DELETE /api/admin/categories/:id
 const deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: "Category not found" });
-    res.json({ message: "Category deleted" });
+
+    const productCount = await Product.countDocuments({ category: req.params.id });
+    if (productCount > 0) {
+      return res.status(400).json({
+        message: `Cannot delete category. There are ${productCount} product(s) associated with this category. Please reassign or delete them first.`,
+      });
+    }
+
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({ message: "Category deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
