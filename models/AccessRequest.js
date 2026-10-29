@@ -10,7 +10,7 @@ const accessRequestSchema = new mongoose.Schema(
       enum: ["Phone", "WhatsApp", "Email"],
       default: "Phone",
     },
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
     collectionId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     message: { type: String, default: "" },
     status: {
@@ -26,7 +26,7 @@ const accessRequestSchema = new mongoose.Schema(
       default: "New",
     },
     internalNotes: { type: String, default: "" },
-    privateAccessToken: { type: String, sparse: true }, // Hashed token
+    privateAccessToken: { type: String, index: true, sparse: true }, // Hashed token
     privateAccessExpiresAt: { type: Date },
     privateAccessRevoked: { type: Boolean, default: false },
   },

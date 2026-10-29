@@ -33,7 +33,7 @@ const forgotPasswordAdmin = async (req, res) => {
     const admin = await Admin.findOne({ email: email.toLowerCase() });
     
     if (!admin) {
-      return res.status(404).json({ message: "Admin account not found." });
+      return res.json({ message: "If this email is registered, an OTP has been sent." });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
@@ -61,6 +61,10 @@ const resetPasswordAdmin = async (req, res) => {
     
     if (!admin.resetOtp || admin.resetOtp !== otp || admin.resetOtpExpiry < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
     }
 
     admin.password = newPassword; // Pre-save hook will hash it
@@ -122,6 +126,10 @@ const updateAdminPassword = async (req, res) => {
     
     if (!(await admin.matchPassword(currentPassword))) {
       return res.status(401).json({ message: "Incorrect current password" });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
     }
 
     admin.password = newPassword; // Pre-save hook will hash it

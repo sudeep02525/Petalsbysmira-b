@@ -12,8 +12,11 @@ import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
+import corporateRoutes from "./routes/corporateRoutes.js";
+import jwt from "jsonwebtoken";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // connect DB
 connectDB();
@@ -68,6 +71,17 @@ const io = new Server(server, {
 });
 app.set("io", io);
 
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+    if (!token) return next(new Error("unauthorized"));
+    jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    next(new Error("unauthorized"));
+  }
+});
+
 io.on("connection", (socket) => {
   console.log("Client connected via Socket.io:", socket.id);
   socket.on("disconnect", () => {
@@ -91,6 +105,7 @@ app.use("/categories", categoryRoutes);
 app.use("/collections", categoryRoutes);
 app.use("/admin", adminRoutes);
 app.use("/requests", requestRoutes);
+app.use("/corporate-enquiries", corporateRoutes);
 
 // 404 handler
 app.use((req, res) => {

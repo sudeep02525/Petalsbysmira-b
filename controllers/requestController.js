@@ -10,31 +10,36 @@ export const createRequest = async (req, res) => {
     const { fullName, email, phone, preferredContactMethod, productId, collectionId, message } = req.body;
 
     // Validate required fields
-    if (!fullName || !email || !phone || !productId) {
-      return res.status(400).json({ message: "Full Name, Email, Phone, and Product are required." });
+    if (!fullName || !email || !phone) {
+      return res.status(400).json({ message: "Full Name, Email and Phone are required." });
     }
 
-    // Verify product exists and is active
-    const product = await Product.findById(productId);
-    if (!product || !product.isActive) {
-      return res.status(404).json({ message: "Product not found or unavailable." });
+    let product = null;
+    if (productId) {
+      product = await Product.findById(productId);
+      if (!product || !product.isActive) {
+        return res.status(404).json({ message: "Product not found or unavailable." });
+      }
+
+      if (!product.requestAccessEnabled) {
+        return res.status(400).json({ message: "Access requests are currently disabled for this product." });
+      }
     }
 
-    if (!product.requestAccessEnabled) {
-      return res.status(400).json({ message: "Access requests are currently disabled for this product." });
-    }
-
-    // Duplicate check: Same email + same product within the last 24 hours
+    // Duplicate check: Same email + same product (or general request) within the last 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const existingRequest = await AccessRequest.findOne({
+    const existingQuery = {
       email: email.toLowerCase(),
-      productId,
       createdAt: { $gte: oneDayAgo },
-    });
+    };
+    if (productId) {
+      existingQuery.productId = productId;
+    }
+    const existingRequest = await AccessRequest.findOne(existingQuery);
 
     if (existingRequest) {
       return res.status(429).json({
-        message: "You have already submitted a request for this item recently. Our team will contact you shortly.",
+        message: "You have already submitted a request recently. Our team will contact you shortly.",
       });
     }
 
@@ -43,8 +48,8 @@ export const createRequest = async (req, res) => {
       email,
       phone,
       preferredContactMethod: preferredContactMethod || "Phone",
-      productId,
-      collectionId: collectionId || product.collectionId || product.category,
+      ...(productId && { productId }),
+      collectionId: collectionId || product?.collectionId || product?.category,
       message,
     });
 
@@ -87,7 +92,7 @@ export const getRequests = async (req, res) => {
 
     const [requests, total] = await Promise.all([
       AccessRequest.find(filter)
-        .populate("productId", "name images")
+        .populate("productId", "name images slug price stock shortSubtitle")
         .populate("collectionId", "name")
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -111,7 +116,7 @@ export const getRequests = async (req, res) => {
 export const getRequestById = async (req, res) => {
   try {
     const request = await AccessRequest.findById(req.params.id)
-      .populate("productId", "name images slug")
+      .populate("productId", "name images slug price stock shortSubtitle")
       .populate("collectionId", "name");
 
     if (!request) {
@@ -135,7 +140,11 @@ export const updateRequest = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    const previousStatus = request.status;
+    const ALLOWED = ["New", "Contacted", "In Discussion", "Access Granted", "Closed", "Rejected"];
+    if (status && !ALLOWED.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value." });
+    }
+
     if (status) request.status = status;
     if (internalNotes !== undefined) request.internalNotes = internalNotes;
 
@@ -184,10 +193,11 @@ export const resendPrivateAccess = async (req, res) => {
       return res.status(404).json({ message: "Valid request not found" });
     }
     
-    // Generate a new token but KEEP the expiry time
+    // Generate a new token and refresh the expiry time (24h)
     const rawToken = crypto.randomBytes(32).toString("hex");
     request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
     request.privateAccessRevoked = false;
+    request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     request.status = "Access Granted";
     
     await request.save();

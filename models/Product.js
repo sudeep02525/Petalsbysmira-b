@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema(
 
     price: { type: Number, required: true },
     discountPrice: { type: Number, default: null }, // sale price, null if no discount
+    privatePrice: { type: Number, default: null },
 
 
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },

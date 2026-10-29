@@ -51,6 +51,9 @@ const createCategory = async (req, res) => {
     });
     res.status(201).json(category);
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "This category name already exists. Use a different name." });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -61,14 +64,19 @@ const updateCategory = async (req, res) => {
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: "Category not found" });
 
+    const nameChanged = req.body.name && req.body.name !== category.name;
     ["name", "description", "displayOrder", "isActive"].forEach((field) => {
       if (req.body[field] !== undefined) category[field] = req.body[field];
     });
+    if (nameChanged) category.slug = slugify(req.body.name);
     if (req.file) category.image = req.file.path;
 
     await category.save();
     res.json(category);
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "This category name already exists. Use a different name." });
+    }
     res.status(500).json({ message: error.message });
   }
 };

@@ -10,9 +10,18 @@ import {
 
 import { protectAdmin } from "../middleware/auth.js";
 import upload from "../middleware/upload.js";
+import rateLimit from "express-rate-limit";
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many login attempts. Try again after 15 minutes." },
+});
 
 // auth
-router.post("/login", loginAdmin);
+router.post("/login", loginLimiter, loginAdmin);
 router.post("/forgot-password", forgotPasswordAdmin);
 router.post("/reset-password", resetPasswordAdmin);
 router.get("/profile", protectAdmin, getAdminProfile);
