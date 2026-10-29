@@ -267,6 +267,18 @@ export const validateToken = async (req, res) => {
       return res.status(401).json({ message: "Link has expired." });
     }
 
+    // Mark first usage timestamp if not already marked
+    if (!request.privateAccessUsedAt) {
+      request.privateAccessUsedAt = new Date();
+      await request.save();
+    }
+
+    let productSlug = null;
+    if (request.productId) {
+      const product = await Product.findById(request.productId).select("slug");
+      productSlug = product?.slug || null;
+    }
+
     // Set HTTP-only cookie
     res.cookie("privateAccessToken", token, {
       httpOnly: true,
@@ -275,7 +287,13 @@ export const validateToken = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    res.json({ valid: true, message: "Access granted", privateAccessToken: token });
+    res.json({
+      valid: true,
+      message: "Access granted",
+      privateAccessToken: token,
+      productSlug,
+      expiresAt: request.privateAccessExpiresAt,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
