@@ -15,8 +15,8 @@ const generateSlug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").re
 
 const categoriesData = [
   { name: "The Editions", slug: "the-editions", description: "Curated for those who know their worth.", image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop" },
-  { name: "Men's Luxury Watches", slug: "mens-luxury-watches", description: "Timeless Icons", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=800&auto=format&fit=crop" },
-  { name: "Luxury Bags", slug: "luxury-bags", description: "A Lifestyle, Not a Trend", image: "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=800&auto=format&fit=crop" }
+  { name: "Men's Luxury Watches", slug: "mens-luxury-watches", description: "Timeless Icons", image: "https://res.cloudinary.com/tbllydoh/image/upload/v1793362401/petalsbysmira/products/rolex_daytona_luxury_1793362397513.jpg" },
+  { name: "Luxury Bags", slug: "luxury-bags", description: "A Lifestyle, Not a Trend", image: "https://res.cloudinary.com/tbllydoh/image/upload/v1793362750/petalsbysmira/products/gucci_gg_marmont_luxury_1793362750658.jpg" }
 ];
 
 const productsData = [
@@ -80,7 +80,7 @@ const productsData = [
     categorySlug: "mens-luxury-watches",
     price: 2500000,
     stock: 1,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505117/petalsbysmira/products/fomfg2uhc7v455o89cc0.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362401/petalsbysmira/products/rolex_daytona_luxury_1793362397513.jpg"],
     isActive: true,
   },
   {
@@ -90,7 +90,7 @@ const productsData = [
     categorySlug: "mens-luxury-watches",
     price: 1200000,
     stock: 3,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505118/petalsbysmira/products/y8q5rrexnjfcojn0zd1q.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362402/petalsbysmira/products/rolex_submariner_date_luxury_1793362402234.jpg"],
     isActive: true,
   },
   {
@@ -100,7 +100,7 @@ const productsData = [
     categorySlug: "mens-luxury-watches",
     price: 1450000,
     stock: 2,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505119/petalsbysmira/products/kef8xfon6hldpggzla6x.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362403/petalsbysmira/products/rolex_gmt_master_ii_luxury_1793362403402.jpg"],
     isActive: true,
   },
   {
@@ -110,7 +110,7 @@ const productsData = [
     categorySlug: "mens-luxury-watches",
     price: 950000,
     stock: 5,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505119/petalsbysmira/products/sijydiczhii0xggjig1e.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362404/petalsbysmira/products/rolex_datejust_luxury_1793362404271.jpg"],
     isActive: true,
   },
   {
@@ -120,7 +120,7 @@ const productsData = [
     categorySlug: "mens-luxury-watches",
     price: 1800000,
     stock: 1,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505120/petalsbysmira/products/un27ga53pxbz1yklkxdl.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362405/petalsbysmira/products/rolex_sky_dweller_luxury_1793362405193.jpg"],
     isActive: true,
   },
 
@@ -132,7 +132,7 @@ const productsData = [
     categorySlug: "luxury-bags",
     price: 185000,
     stock: 4,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505121/petalsbysmira/products/pool9qdphxu3jbwo1pfl.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362749/petalsbysmira/products/gucci_ophidia_tote_luxury_1793362747880.jpg"],
     isActive: true,
   },
   {
@@ -142,7 +142,7 @@ const productsData = [
     categorySlug: "luxury-bags",
     price: 210000,
     stock: 3,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505121/petalsbysmira/products/jubfqnkh3ubcua0hxxgy.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362750/petalsbysmira/products/gucci_gg_marmont_luxury_1793362750658.jpg"],
     isActive: true,
   },
   {
@@ -152,7 +152,7 @@ const productsData = [
     categorySlug: "luxury-bags",
     price: 320000,
     stock: 2,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505122/petalsbysmira/products/mrdywvca4o6z9ucqaoza.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362751/petalsbysmira/products/gucci_bamboo_1947_luxury_1793362751615.jpg"],
     isActive: true,
   },
   {
@@ -162,7 +162,7 @@ const productsData = [
     categorySlug: "luxury-bags",
     price: 250000,
     stock: 3,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505123/petalsbysmira/products/coe4uub8v2pzbpd0yayu.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362752/petalsbysmira/products/gucci_jackie_1961_luxury_1793362752393.jpg"],
     isActive: true,
   },
   {
@@ -172,7 +172,7 @@ const productsData = [
     categorySlug: "luxury-bags",
     price: 275000,
     stock: 4,
-    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1787505124/petalsbysmira/products/v5myvyprnhnuehxpvgkr.jpg"],
+    images: ["https://res.cloudinary.com/tbllydoh/image/upload/v1793362753/petalsbysmira/products/gucci_horsebit_1955_luxury_1793362753151.jpg"],
     isActive: true,
   }
 ];

@@ -38,7 +38,7 @@ ${cta ? `<tr><td align="center" style="padding:28px 32px;">
 </td></tr>` : ""}
 ${note ? `<tr><td style="padding:0 32px 28px;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;color:#777;">${note}</td></tr>` : ""}
 <tr><td style="padding:20px 32px;border-top:1px solid #eee;font-family:Arial,sans-serif;font-size:11px;color:#999;text-align:center;line-height:1.6;">
-Petals by Smira · <a href="mailto:concierge@petalsbysmira.in" style="color:#b08d3f;text-decoration:none;">concierge@petalsbysmira.in</a><br>
+Petals by Smira · <a href="mailto:petalsbysmira@gmail.com" style="color:#b08d3f;text-decoration:none;">petalsbysmira@gmail.com</a><br>
 This is an automated message, please do not reply.
 </td></tr>
 </table>
