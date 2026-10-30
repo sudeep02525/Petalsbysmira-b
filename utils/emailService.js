@@ -56,7 +56,7 @@ const logMock = (label, to, extra) => {
 
 export const sendOtpEmail = async (toEmail, otp) => {
   if (!resend) return logMock("OTP email", toEmail, otp);
-  return resend.emails.send({
+  const result = await resend.emails.send({
     from: EMAIL_FROM,
     to: toEmail,
     subject: "Your Petals by Smira admin OTP",
@@ -72,11 +72,15 @@ export const sendOtpEmail = async (toEmail, otp) => {
     }),
     text: `Hello Admin,\n\nYour password reset code is ${otp}. It is valid for 10 minutes.\n\n— Petals by Smira`,
   });
+  if (result.error) {
+    throw new Error(result.error.message || "Failed to deliver OTP email via Resend");
+  }
+  return result;
 };
 
 export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) => {
   if (!resend) return logMock("private access email", toEmail, accessUrl);
-  return resend.emails.send({
+  const result = await resend.emails.send({
     from: EMAIL_FROM,
     to: toEmail,
     subject: "Your Private Access — Petals by Smira",
@@ -90,4 +94,8 @@ export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) =
     }),
     text: `Hello ${customerName},\n\nYour private access is approved and valid for 24 hours.\n\n${accessUrl}\n\n— Petals by Smira`,
   });
+  if (result.error) {
+    throw new Error(result.error.message || "Failed to deliver private access email via Resend");
+  }
+  return result;
 };

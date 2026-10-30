@@ -179,17 +179,19 @@ export const generatePrivateAccess = async (req, res) => {
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
     let emailSent = true;
+    let emailError = null;
     try {
       await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
     } catch (e) {
       emailSent = false;
+      emailError = e.message;
       console.error("Private access email failed:", e.message);
     }
 
     res.json({
       message: emailSent
         ? "Access link generated and email sent successfully."
-        : "Link generated, but email could not be delivered. Please copy the link below and share it manually.",
+        : `Link generated, but email could not be delivered: ${emailError || "Delivery failed"}. Please copy the link below and share it manually.`,
       accessUrl,
       emailSent,
     });
@@ -218,17 +220,19 @@ export const resendPrivateAccess = async (req, res) => {
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
     let emailSent = true;
+    let emailError = null;
     try {
       await sendPrivateAccessEmail(request.email, request.fullName, accessUrl);
     } catch (e) {
       emailSent = false;
+      emailError = e.message;
       console.error("Private access email failed:", e.message);
     }
 
     res.json({
       message: emailSent
         ? "Access link email resent successfully."
-        : "Link refreshed, but email could not be delivered. Please copy the link below and share it manually.",
+        : `Link refreshed, but email could not be delivered: ${emailError || "Delivery failed"}. Please copy the link below and share it manually.`,
       accessUrl,
       emailSent,
     });
