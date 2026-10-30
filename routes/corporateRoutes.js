@@ -47,5 +47,24 @@ router.get("/", protectAdmin, async (req, res) => {
   }
 });
 
+// admin update enquiry status
+router.patch("/:id/status", protectAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!["New", "Contacted", "Quoted", "Closed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status value." });
+    }
+    const doc = await CorporateEnquiry.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: "Enquiry not found." });
+    res.json({ message: "Status updated successfully.", enquiry: doc });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
 
