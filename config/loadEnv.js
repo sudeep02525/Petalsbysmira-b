@@ -27,3 +27,4 @@ if (fs.existsSync(envProdPath)) {
 
 // 4. Default fallback
 dotenv.config();
+
