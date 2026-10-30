@@ -1,6 +1,5 @@
 // Run this ONCE to create the first admin account: node seed.js
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/loadEnv.js";
 import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 import Admin from "./models/Admin.js";

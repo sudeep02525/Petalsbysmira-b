@@ -1,7 +1,5 @@
+import "./config/loadEnv.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-
-dotenv.config({ path: "./.env.local" });
 
 const run = async () => {
   try {

@@ -1,8 +1,6 @@
+import "./config/loadEnv.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
-
-dotenv.config({ path: "./.env.local" });
 
 cloudinary.config({
   cloud_name: 'tbllydoh',

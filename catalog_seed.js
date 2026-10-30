@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/loadEnv.js";
 import mongoose from "mongoose";
 import connectDB from "./config/db.js";
 import Category from "./models/Category.js";

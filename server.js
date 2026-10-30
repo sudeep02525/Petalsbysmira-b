@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/loadEnv.js";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";

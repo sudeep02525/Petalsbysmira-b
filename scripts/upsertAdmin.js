@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+import "../config/loadEnv.js";
 import mongoose from "mongoose";
 import Admin from "../models/Admin.js";
 

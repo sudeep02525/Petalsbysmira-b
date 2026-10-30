@@ -1,8 +1,6 @@
+import "../config/loadEnv.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import Admin from "../models/Admin.js";
-
-dotenv.config({ path: ".env.local" });
 
 const seedAdmin = async () => {
   try {

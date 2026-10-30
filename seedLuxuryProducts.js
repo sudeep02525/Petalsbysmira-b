@@ -1,12 +1,5 @@
+import "./config/loadEnv.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-import fs from "fs";
-
-if (fs.existsSync(".env.local")) {
-  dotenv.config({ path: ".env.local" });
-} else {
-  dotenv.config();
-}
 
 import Product from "./models/Product.js";
 import Category from "./models/Category.js";
