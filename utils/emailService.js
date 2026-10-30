@@ -1,8 +1,9 @@
+import "../config/loadEnv.js";
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey && resendApiKey !== "YOUR_RESEND_API_KEY_HERE" ? new Resend(resendApiKey) : null;
-const EMAIL_FROM = process.env.EMAIL_FROM || "Petals by Smira <onboarding@resend.dev>";
+const EMAIL_FROM = process.env.EMAIL_FROM || "Petals by Smira <concierge@petalsbysmira.in>";
 
 const esc = (s = "") =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
