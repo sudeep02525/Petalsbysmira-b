@@ -11,7 +11,6 @@ import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
-import corporateRoutes from "./routes/corporateRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import jwt from "jsonwebtoken";
 
@@ -117,7 +116,6 @@ app.use("/categories", categoryRoutes);
 app.use("/collections", categoryRoutes);
 app.use("/admin", adminRoutes);
 app.use("/requests", requestRoutes);
-app.use("/corporate-enquiries", corporateRoutes);
 
 // 404 handler
 app.use((req, res) => {
