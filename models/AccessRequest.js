@@ -26,7 +26,8 @@ const accessRequestSchema = new mongoose.Schema(
       default: "New",
     },
     internalNotes: { type: String, default: "" },
-    privateAccessToken: { type: String, index: true, sparse: true }, // Hashed token
+    privateAccessToken: { type: String, index: true, sparse: true }, // Hashed token for secure lookup
+    privateAccessRawToken: { type: String }, // Raw token stored so admin can copy/WhatsApp link anytime
     privateAccessExpiresAt: { type: Date },
     privateAccessRevoked: { type: Boolean, default: false },
     privateAccessUsedAt: { type: Date },

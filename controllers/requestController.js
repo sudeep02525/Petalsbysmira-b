@@ -123,7 +123,20 @@ export const getRequestById = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    res.json(request);
+    const data = request.toObject();
+    const frontendUrl = process.env.FRONTEND_URL || "https://www.petalsbysmira.in";
+
+    // If active private access raw token exists, attach accessUrl so admin can view/copy anytime
+    if (
+      data.privateAccessRawToken &&
+      !data.privateAccessRevoked &&
+      data.privateAccessExpiresAt &&
+      new Date(data.privateAccessExpiresAt) > new Date()
+    ) {
+      data.accessUrl = `${frontendUrl}/private-access/${data.privateAccessRawToken}`;
+    }
+
+    res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -169,13 +182,14 @@ export const generatePrivateAccess = async (req, res) => {
 
     const rawToken = crypto.randomBytes(32).toString("hex");
     request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    request.privateAccessRawToken = rawToken;
     request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     request.privateAccessRevoked = false;
     request.status = "Access Granted";
     
     await request.save();
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = process.env.FRONTEND_URL || "https://www.petalsbysmira.in";
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
     let emailSent = true;
@@ -194,6 +208,7 @@ export const generatePrivateAccess = async (req, res) => {
         : `Link generated, but email could not be delivered: ${emailError || "Delivery failed"}. Please copy the link below and share it manually.`,
       accessUrl,
       emailSent,
+      emailError,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -210,13 +225,14 @@ export const resendPrivateAccess = async (req, res) => {
     // Generate a new token and refresh the expiry time (24h)
     const rawToken = crypto.randomBytes(32).toString("hex");
     request.privateAccessToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    request.privateAccessRawToken = rawToken;
     request.privateAccessRevoked = false;
     request.privateAccessExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     request.status = "Access Granted";
     
     await request.save();
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const frontendUrl = process.env.FRONTEND_URL || "https://www.petalsbysmira.in";
     const accessUrl = `${frontendUrl}/private-access/${rawToken}`;
     
     let emailSent = true;
@@ -235,6 +251,7 @@ export const resendPrivateAccess = async (req, res) => {
         : `Link refreshed, but email could not be delivered: ${emailError || "Delivery failed"}. Please copy the link below and share it manually.`,
       accessUrl,
       emailSent,
+      emailError,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

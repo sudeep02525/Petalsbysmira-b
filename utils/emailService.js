@@ -48,14 +48,11 @@ This is an automated message, please do not reply.
 </body>
 </html>`;
 
-const logMock = (label, to, extra) => {
-  console.warn(`[email] RESEND_API_KEY missing — ${label} not sent`);
-  console.log(`Mock ${label} to ${to}: ${extra}`);
-  return { id: "mock_email_id" };
-};
-
 export const sendOtpEmail = async (toEmail, otp) => {
-  if (!resend) return logMock("OTP email", toEmail, otp);
+  if (!resend) {
+    console.error("CRITICAL: RESEND_API_KEY is missing. Cannot send OTP email to:", toEmail);
+    throw new Error("RESEND_API_KEY is not configured on the server environment.");
+  }
   const result = await resend.emails.send({
     from: EMAIL_FROM,
     to: toEmail,
@@ -79,7 +76,10 @@ export const sendOtpEmail = async (toEmail, otp) => {
 };
 
 export const sendPrivateAccessEmail = async (toEmail, customerName, accessUrl) => {
-  if (!resend) return logMock("private access email", toEmail, accessUrl);
+  if (!resend) {
+    console.error("CRITICAL: RESEND_API_KEY is missing. Cannot send private access email to:", toEmail);
+    throw new Error("RESEND_API_KEY is not configured on the server environment. Please set RESEND_API_KEY in Render environment variables.");
+  }
   const result = await resend.emails.send({
     from: EMAIL_FROM,
     to: toEmail,
