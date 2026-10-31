@@ -84,3 +84,4 @@ const siteSettingsSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("SiteSettings", siteSettingsSchema);
+

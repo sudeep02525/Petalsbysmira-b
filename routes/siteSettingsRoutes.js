@@ -14,3 +14,4 @@ router.get("/", getSiteSettings);
 router.put("/", protectAdmin, updateSiteSettings);
 
 export default router;
+

@@ -82,3 +82,4 @@ export const updateSiteSettings = async (req, res) => {
     res.status(500).json({ message: error.message || "Failed to update site settings" });
   }
 };
+
