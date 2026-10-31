@@ -31,7 +31,9 @@ const mapPublicProduct = (product, hasPrivateAccess) => {
     displayOrder: p.displayOrder,
     isFeatured: p.isFeatured,
     isNewArrival: p.isNewArrival,
-    stock: p.stock
+    stock: p.stock,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
   };
 };
 
