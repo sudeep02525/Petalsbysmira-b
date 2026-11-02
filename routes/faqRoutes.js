@@ -21,3 +21,4 @@ adminFaqRouter.get("/", protectAdmin, listFaqs);
 adminFaqRouter.post("/", protectAdmin, createFaq);
 adminFaqRouter.put("/:id", protectAdmin, updateFaq);
 adminFaqRouter.delete("/:id", protectAdmin, deleteFaq);
+

@@ -14,3 +14,4 @@ const faqSchema = new mongoose.Schema(
 faqSchema.index({ category: 1, order: 1 });
 
 export default mongoose.model("Faq", faqSchema);
+

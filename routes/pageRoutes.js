@@ -19,3 +19,4 @@ export const adminPageRouter = express.Router();
 adminPageRouter.get("/", protectAdmin, listPages);
 adminPageRouter.get("/:slug", protectAdmin, getAdminPageBySlug);
 adminPageRouter.put("/:slug", protectAdmin, upsertPage);
+
