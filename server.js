@@ -12,6 +12,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import requestRoutes from "./routes/requestRoutes.js";
 import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+import pageRoutes, { adminPageRouter } from "./routes/pageRoutes.js";
+import faqRoutes, { adminFaqRouter } from "./routes/faqRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import jwt from "jsonwebtoken";
 
@@ -119,6 +121,10 @@ app.use("/admin", adminRoutes);
 app.use("/requests", requestRoutes);
 app.use("/site-settings", siteSettingsRoutes);
 app.use("/admin/site-settings", siteSettingsRoutes);
+app.use("/pages", pageRoutes);
+app.use("/faqs", faqRoutes);
+app.use("/admin/pages", adminPageRouter);
+app.use("/admin/faqs", adminFaqRouter);
 
 // 404 handler
 app.use((req, res) => {

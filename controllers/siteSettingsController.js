@@ -52,6 +52,7 @@ export const getSiteSettings = async (req, res) => {
     if (!settings) {
       settings = await SiteSettings.create(DEFAULT_SETTINGS);
     }
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
     res.json(settings);
   } catch (error) {
     console.error("Error fetching site settings:", error);
@@ -71,6 +72,10 @@ export const updateSiteSettings = async (req, res) => {
     } else {
       Object.assign(settings, updates);
       await settings.save();
+    }
+
+    if (process.env.FRONTEND_URL && process.env.REVALIDATE_SECRET) {
+      fetch(`${process.env.FRONTEND_URL}/api/revalidate?path=/&secret=${process.env.REVALIDATE_SECRET}`).catch(() => {});
     }
 
     res.json({
